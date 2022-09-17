@@ -8,14 +8,15 @@
 #endif
 
 enum PluginType {
-  All = 0,
-  Translator = 1000,
-  Extender
+  TypeAll = 0,
+  TypeTranslator = 1000,
+  TypeExtender
 };
 
 enum PluginHook {
   HookNone = 0,
-  HookPrintMainMenu = 1000,
+  HookMainMenu = 1000,
+  HookExecMenu,
   HookTranslationMenu
 };
 

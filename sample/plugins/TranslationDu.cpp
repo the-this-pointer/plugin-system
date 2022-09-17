@@ -37,7 +37,7 @@ public:
   }
 
   std::vector<PluginType> getType() override {
-    return { PluginType::Translator };
+    return { PluginType::TypeTranslator };
   }
 
   std::vector<PluginHook> registeredHooks() override {

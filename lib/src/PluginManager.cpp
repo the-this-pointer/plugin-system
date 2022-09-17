@@ -49,21 +49,31 @@ void PluginManager::registerFilter(std::shared_ptr<IPlugin> plugin, const Plugin
 
 void PluginManager::executeHook(const PluginHook &hook, void* param) {
   for (const auto& elem: m_hooks) {
-    if (elem.second == hook)
-      elem.first->execHook(hook, param);
+    try {
+      if (elem.second == hook)
+        elem.first->execHook(hook, param);
+    }
+    catch (std::exception& ex) {
+      std::cout << "Exception occured during hook execution: " << ex.what() << std::endl;
+    }
   }
 }
 
 void* PluginManager::executeFilter(const PluginFilter &filter, void* param) {
   for (const auto& elem: m_filters) {
-    if (elem.second == filter)
-      elem.first->execFilter(filter, param);
+    try {
+      if (elem.second == filter)
+        elem.first->execFilter(filter, param);
+    }
+    catch (std::exception& ex) {
+      std::cout << "Exception occured during filter execution: " << ex.what() << std::endl;
+    }
   }
   return param;
 }
 
 std::vector<std::shared_ptr<IPlugin>> PluginManager::pluginsByType(const PluginType &type) {
-  if (type == PluginType::All)
+  if (type == PluginType::TypeAll)
     return m_plugins;
 
   std::vector<std::shared_ptr<IPlugin>> res;

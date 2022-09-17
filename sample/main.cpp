@@ -11,6 +11,7 @@ std::unique_ptr<PluginManager> pluginManager;
 typedef struct {
   std::string caption;
   void (*method)();
+  std::shared_ptr<IPlugin> plugin;
 } MenuItem;
 
 void printPluginInfo();
@@ -19,14 +20,14 @@ void exitFromApp();
 
 std::vector<MenuItem> engMenus;
 static std::vector<MenuItem> menus {
-    {"Loaded Plugins Info", printPluginInfo},
-    {"Translation", printTranslationMenu},
+    {"Loaded Plugins Info", printPluginInfo, nullptr},
+    {"Translation", printTranslationMenu, nullptr},
 };
 
 void printPluginInfo() {
   system("cls");
   _sleep(50);
-  auto plugins = pluginManager->pluginsByType(PluginType::All);
+  auto plugins = pluginManager->pluginsByType(PluginType::TypeAll);
   int i = 0;
   for(const auto& plugin: plugins) {
     std::string* nameParam = (std::string*)plugin->getParam("name");
@@ -53,7 +54,7 @@ void printTranslationMenu() {
   system("cls");
   _sleep(50);
 
-  auto translators = pluginManager->pluginsByType(PluginType::Translator);
+  auto translators = pluginManager->pluginsByType(PluginType::TypeTranslator);
   int i = 0;
   std::map<std::string, std::shared_ptr<IPlugin>> langs;
   std::vector<std::string> langMenu;
@@ -90,7 +91,7 @@ int main()
 {
   pluginManager = std::make_unique<PluginManager>(PLUGIN_PATH);
 
-  menus.emplace_back(MenuItem{"Exit", exitFromApp});
+  menus.emplace_back(MenuItem{"Exit", exitFromApp, nullptr});
   engMenus = menus;
 
   do {
