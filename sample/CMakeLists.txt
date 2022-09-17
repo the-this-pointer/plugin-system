@@ -1,0 +1,7 @@
+add_executable(PluginSystemSample main.cpp)
+set_target_properties(PluginSystemSample PROPERTIES LINK_SEARCH_START_STATIC ON)
+set_target_properties(PluginSystemSample PROPERTIES LINK_SEARCH_END_STATIC ON)
+set_target_properties(PluginSystemSample PROPERTIES OUTPUT_NAME PluginsSample)
+target_link_libraries(PluginSystemSample PRIVATE PluginSystemLib_static -static-libgcc -static-libstdc++ -static)
+
+add_subdirectory(plugins)

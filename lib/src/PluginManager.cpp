@@ -9,6 +9,12 @@ PluginManager::PluginManager(std::string path) : m_path(std::move(path)) {
   loadPlugins();
 }
 
+PluginManager::~PluginManager() {
+  m_filters.clear();
+  m_hooks.clear();
+  m_plugins.clear();
+}
+
 void PluginManager::loadPlugins() {
   // iterate through files and load dlls
   for (const auto & file : std::filesystem::directory_iterator(m_path)) {
@@ -57,6 +63,9 @@ void* PluginManager::executeFilter(const PluginFilter &filter, void* param) {
 }
 
 std::vector<std::shared_ptr<IPlugin>> PluginManager::pluginsByType(const PluginType &type) {
+  if (type == PluginType::All)
+    return m_plugins;
+
   std::vector<std::shared_ptr<IPlugin>> res;
   for (const auto& plugin: m_plugins) {
     std::vector<PluginType> types = plugin->getType();

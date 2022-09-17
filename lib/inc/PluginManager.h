@@ -7,8 +7,8 @@
 
 class PluginManager: public IPluginManager {
 public:
-  PluginManager(std::string path);
-  ~PluginManager() = default;
+  explicit PluginManager(std::string path);
+  ~PluginManager();
 
   PluginManager(PluginManager&) = delete;
   PluginManager(PluginManager&&) = delete;

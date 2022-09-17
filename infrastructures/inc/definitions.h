@@ -8,7 +8,8 @@
 #endif
 
 enum PluginType {
-  Translator = 0,
+  All = 0,
+  Translator = 1000,
   Extender
 };
 
