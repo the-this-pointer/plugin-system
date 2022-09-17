@@ -1,0 +1,3 @@
+
+add_library(PluginSystemInfrastructures INTERFACE)
+target_include_directories(PluginSystemInfrastructures INTERFACE inc/)
