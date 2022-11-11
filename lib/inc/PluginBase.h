@@ -10,7 +10,7 @@
 
 typedef IPlugin* (__cdecl *procCreatePlugin)();
 
-class PluginBase: public IPlugin {
+class PluginBase: public IPluginHolder {
 public:
   explicit PluginBase(std::string path);
 
@@ -25,14 +25,15 @@ public:
   std::vector<PluginFilter> registeredFilters() override;
   bool execHook(const PluginHook& hook, void *param) override;
   void *execFilter(const PluginFilter& filter, void *param) override;
-  void *getParam(const std::string &param) override;
-  bool setParam(const std::string &param, void *value) override;
+  void *getParam(PluginParam param) override;
+  bool setParam(PluginParam param, void *value) override;
   void destroy() override;
 
+  std::shared_ptr<IPlugin> instance() override;
 private:
   std::string m_path;
   HINSTANCE m_plugin;
-  IPlugin* m_instance;
+  std::shared_ptr<IPlugin> m_instance;
 };
 
 #endif //PLUGIN_SYSTEM_PLUGINBASE_H

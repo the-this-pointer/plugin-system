@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 #include <definitions.h>
 
 typedef void(*HookFunc)(void*);
@@ -15,9 +16,14 @@ public:
   virtual std::vector<PluginFilter> registeredFilters() = 0;
   virtual bool execHook(const PluginHook& hook, void* param) = 0;
   virtual void* execFilter(const PluginFilter& filter, void* param) = 0;
-  virtual void* getParam(const std::string& param) = 0;
-  virtual bool setParam(const std::string& param, void* value) = 0;
+  virtual void* getParam(PluginParam param) = 0;
+  virtual bool setParam(PluginParam param, void* value) = 0;
   virtual void destroy() = 0;
+};
+
+class IPluginHolder: public IPlugin {
+public:
+  virtual std::shared_ptr<IPlugin> instance() = 0;
 };
 
 #endif //PLUGINSYSTEM_IPLUGIN_H

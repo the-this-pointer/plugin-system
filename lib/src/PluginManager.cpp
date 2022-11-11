@@ -4,12 +4,15 @@
 #include <filesystem>
 #include <iostream>
 #include <algorithm>
+#include <utility>
 
 PluginManager::PluginManager(std::string path) : m_path(std::move(path)) {
-  loadPlugins();
+  std::cout << ">> PluginManager constructor" << std::endl;
 }
 
 PluginManager::~PluginManager() {
+  std::cout << ">> PluginManager destructor" << std::endl;
+  m_container->clear();
   m_filters.clear();
   m_hooks.clear();
   m_plugins.clear();
@@ -18,15 +21,29 @@ PluginManager::~PluginManager() {
 void PluginManager::loadPlugins() {
   // iterate through files and load dlls
   for (const auto & file : std::filesystem::directory_iterator(m_path)) {
-    std::filesystem::path path = file.path();
+    const std::filesystem::path& path = file.path();
     if (path.string().find(".dll") == std::string::npos)
       continue;
 
     try {
-      std::shared_ptr<IPlugin> plugin = std::make_shared<PluginBase>(path.string());
+      std::shared_ptr<IPluginHolder> plugin = std::make_shared<PluginBase>(path.string());
 
-      for (const auto& hook: plugin->registeredHooks())
+      for (const auto& hook: plugin->registeredHooks()) {
         registerHook(plugin, hook);
+        if (hook == HookInjectContainer && m_container)
+        {
+          auto* containerId = (std::string*)plugin->getParam(PARAM_CONTAINER);
+          if (containerId) {
+            unsigned int containerIdentifier = std::stoul(*containerId);
+            if (!m_container->hasItem(containerIdentifier)) {
+              m_container->registerItem(std::stoul(*containerId), plugin);
+            } else {
+              // TODO add log
+            }
+            delete containerId;
+          }
+        }
+      }
 
       for (const auto& filter: plugin->registeredFilters())
         registerFilter(plugin, filter);
@@ -37,6 +54,10 @@ void PluginManager::loadPlugins() {
       std::cout << "Exception occured during load plugin: " << ex.what() << std::endl;
     }
   }
+}
+
+std::shared_ptr<IContainer> PluginManager::getContainer() {
+  return m_container;
 }
 
 void PluginManager::registerHook(std::shared_ptr<IPlugin> plugin, const PluginHook& hook) {
@@ -73,7 +94,7 @@ void* PluginManager::executeFilter(const PluginFilter &filter, void* param) {
 }
 
 std::vector<std::shared_ptr<IPlugin>> PluginManager::pluginsByType(const PluginType &type) {
-  if (type == PluginType::TypeAll)
+  if (type == PluginType::TY_ALL)
     return m_plugins;
 
   std::vector<std::shared_ptr<IPlugin>> res;
@@ -83,4 +104,8 @@ std::vector<std::shared_ptr<IPlugin>> PluginManager::pluginsByType(const PluginT
       res.emplace_back(plugin);
   }
   return res;
+}
+
+void PluginManager::setContainer(std::shared_ptr<IContainer> container) {
+  m_container = std::move(container);
 }

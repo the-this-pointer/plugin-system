@@ -8,11 +8,11 @@
 #define MAJOR_VER "1"
 #define MINOR_VER "0"
 
-static std::map<std::string, std::string> pluginInfo = {
-    {"name", "Dutch Translation Plugin"},
-    {"ver", std::string{MAJOR_VER} + "." + std::string{MINOR_VER}},
-    {"date", std::string{__DATE__} + " - " + std::string{__TIME__}},
-    {"lang", "Dutch"},
+static std::map<PluginParam, std::string> pluginInfo = {
+    {PARAM_NAME, "Dutch Translation Plugin"},
+    {PARAM_VER,  std::string{MAJOR_VER} + "." + std::string{MINOR_VER}},
+    {PARAM_DATE, std::string{__DATE__} + " - " + std::string{__TIME__}},
+    {PARAM_LANG, "Dutch"},
 };
 
 class TranslationDu {
@@ -37,7 +37,7 @@ public:
   }
 
   std::vector<PluginType> getType() override {
-    return { PluginType::TypeTranslator };
+    return { PluginType::TY_TRANSLATOR };
   }
 
   std::vector<PluginHook> registeredHooks() override {
@@ -74,14 +74,14 @@ public:
     return nullptr;
   }
 
-  void *getParam(const std::string &param) override {
+  void *getParam(PluginParam param) override {
     if (pluginInfo.count(param))
       return new std::string {pluginInfo[param]};
 
     return nullptr;
   }
 
-  bool setParam(const std::string &param, void *value) override {
+  bool setParam(PluginParam param, void *value) override {
     return false;
   }
 

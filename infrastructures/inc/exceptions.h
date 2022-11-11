@@ -37,4 +37,14 @@ public:
   PluginNoFilterException(): PluginException("Filter not found in this plugin.") {}
 };
 
+class ContainerItemExists: public PluginException {
+public:
+  explicit ContainerItemExists(unsigned int identifier): PluginException("Item exists in container, item id: " + std::to_string(identifier)) {}
+};
+
+class ContainerItemDoesntExist: public PluginException {
+public:
+  explicit ContainerItemDoesntExist(unsigned int identifier): PluginException("Item doesn't exist in container, item id: " + std::to_string(identifier)) {}
+};
+
 #endif //PLUGINSYSTEM_EXCEPTIONS_H
