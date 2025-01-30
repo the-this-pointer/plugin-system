@@ -3,7 +3,7 @@ file(GLOB_RECURSE ALL_PLUGIN_FILES "*.cpp")
 foreach(PLUGIN_FILE ${ALL_PLUGIN_FILES})
     get_filename_component(PLUGIN_FILE_NAME ${PLUGIN_FILE} NAME)
     string(REPLACE ".cpp" "" PLUGIN_TARGET ${PLUGIN_FILE_NAME})
-    message("  - ${PLUGIN_FILE} --> ${PLUGIN_TARGET}")
+    # message("  - ${PLUGIN_FILE} --> ${PLUGIN_TARGET}")
 
     add_library(${PLUGIN_TARGET}_plugin ${PLUGIN_FILE})
     target_compile_definitions(${PLUGIN_TARGET}_plugin PRIVATE MAKEDLL)

@@ -10,10 +10,12 @@ target_include_directories(PluginSystemLib_static
         )
 
 if(WIN32)
-    target_compile_definitions(PluginSystemLib_static
-            PRIVATE
-            WIN32_LEAN_AND_MEAN
-            _WINSOCK_DEPRECATED_NO_WARNINGS
-            )
+    target_compile_definitions(PluginSystemLib_static PRIVATE WIN32_LEAN_AND_MEAN)
 endif()
-target_link_libraries(PluginSystemLib_static PluginSystemInfrastructures)
+
+if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
+    target_link_libraries(PluginSystemLib_static PluginSystemInfrastructures stdc++fs)
+else()
+    target_link_libraries(PluginSystemLib_static PluginSystemInfrastructures)
+endif()
+

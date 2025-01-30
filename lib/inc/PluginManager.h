@@ -1,39 +1,67 @@
-#ifndef PLUGINSYSTEM_PLUGINLOADER_H
-#define PLUGINSYSTEM_PLUGINLOADER_H
+#ifndef PLUGINSYSTEM_CONTAINER_H
+#define PLUGINSYSTEM_CONTAINER_H
 
-#include <IContainer.h>
 #include <IPluginManager.h>
-#include <memory>
 #include <map>
+#include <utility>
+#include <memory>
 
 class PluginManager: public IPluginManager {
 public:
-  explicit PluginManager(std::string path);
-  ~PluginManager();
+  static std::shared_ptr<PluginManager> instance() {
+    static std::shared_ptr<PluginManager> ins(new PluginManager);
+    return ins;
+  }
 
-  PluginManager(PluginManager&) = delete;
-  PluginManager(PluginManager&&) = delete;
-  void operator=(PluginManager&) = delete;
-  void operator=(PluginManager&&) = delete;
+  void add(std::shared_ptr<IPlugin> item) override;
+  void remove(std::shared_ptr<IPlugin> item) override;
+  [[nodiscard]] std::vector<std::shared_ptr<IPlugin>> getAll() const override;
+  void removeAll() override;
 
-  void setContainer(std::shared_ptr<IContainer> container);
-
-  std::shared_ptr<IContainer> getContainer() override;
-  void registerHook(std::shared_ptr<IPlugin> plugin, const PluginHook& hook) override;
-  void registerFilter(std::shared_ptr<IPlugin> plugin, const PluginFilter& filter) override;
-  void executeHook(const PluginHook &hook, void* param) override;
-  void* executeFilter(const PluginFilter &filter, void* param) override;
-  void loadPlugins() override;
-
-  std::vector<std::shared_ptr<IPlugin>> pluginsByType(const PluginType& type);
 private:
-
-  std::string m_path;
-  std::shared_ptr<IContainer> m_container;
-  // TODO refactor and move these items to container
-  std::vector<std::shared_ptr<IPlugin>> m_plugins;
-  std::vector<std::pair<std::shared_ptr<IPlugin>, PluginHook>> m_hooks;
-  std::vector<std::pair<std::shared_ptr<IPlugin>, PluginFilter>> m_filters;
+  std::vector<std::shared_ptr<IPlugin>> m_items;
 };
 
-#endif //PLUGINSYSTEM_PLUGINLOADER_H
+namespace Components {
+  inline auto addPlugin(std::shared_ptr<IPlugin> object) -> void {
+    PluginManager::instance()->add(std::move(object));
+  }
+
+  inline auto removePlugin(std::shared_ptr<IPlugin> object) -> void{
+    PluginManager::instance()->remove(std::move(object));
+  }
+
+  inline auto allObjects() -> std::vector<std::shared_ptr<IPlugin>> {
+    return PluginManager::instance()->getAll();
+  }
+
+  template<typename T>
+  inline auto getObject() -> std::shared_ptr<T> {
+    for (auto object : PluginManager::instance()->getAll()) {
+
+      auto castObject = std::dynamic_pointer_cast<T>(object);
+
+      if (castObject)
+        return castObject;
+    }
+
+    return nullptr;
+  }
+
+  template<typename T>
+  inline auto getObjects() -> std::vector<std::shared_ptr<T>> {
+    std::vector<std::shared_ptr<T>> objectList;
+
+    for (auto object : PluginManager::instance()->getAll()) {
+
+      auto castObject = std::dynamic_pointer_cast<T>(object);
+
+      if (castObject)
+        objectList.push_back(castObject);
+    }
+
+    return objectList;
+  }
+}
+
+#endif //PLUGINSYSTEM_CONTAINER_H

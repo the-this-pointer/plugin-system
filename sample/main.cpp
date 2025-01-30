@@ -1,8 +1,8 @@
 #include <iostream>
 #include <vector>
 #include <iomanip>
+#include <PluginLoader.h>
 #include <PluginManager.h>
-#include <Container.h>
 #include <IConsole.h>
 #include "exceptions.h"
 
@@ -93,7 +93,7 @@ void exitFromApp(const std::shared_ptr<IConsole>& console) {
 int main()
 {
   pluginManager = std::make_unique<PluginManager>(PLUGIN_PATH);
-  pluginManager->setContainer(std::make_shared<Container>()->instance());
+  pluginManager->setContainer(std::make_shared<PluginManager>()->instance());
   pluginManager->loadPlugins();
 
   std::shared_ptr<IConsole> console = nullptr;
