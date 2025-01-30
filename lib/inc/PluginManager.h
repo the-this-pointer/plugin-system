@@ -41,8 +41,9 @@ namespace Components {
 
       auto castObject = std::dynamic_pointer_cast<T>(object);
 
-      if (castObject)
+      if (castObject != nullptr) {
         return castObject;
+      }
     }
 
     return nullptr;

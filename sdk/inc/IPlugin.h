@@ -15,15 +15,14 @@ public:
 
   virtual ~IPlugin() = default;
 
-  virtual void* getParam(PluginParam param) = 0;
-  virtual bool setParam(PluginParam param, void* value) = 0;
+  virtual void* getParam(PluginParam param) { return nullptr; };
 
-  virtual void destroy() = 0;
+  virtual void destroy() {};
 
-  virtual void Init() = 0;
+  virtual void Init() {};
 
-  virtual void lfAllLoaded() = 0;
-  virtual void lfBeforeUnload() = 0;
+  virtual void lfAllLoaded() {};
+  virtual void lfBeforeUnload() {};
 };
 
 #endif //PLUGINSYSTEM_IPLUGIN_H
