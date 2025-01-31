@@ -33,34 +33,41 @@ void PluginLoader::findPlugins(std::string path) {
   }
 }
 
-void PluginLoader::loadPlugins(std::function<bool(IPlugin *)> examineFunction) {
+void PluginLoader::loadPlugins(std::function<bool(IPlugin *)> loadDecision) {
   for(const auto& component: m_items) {
-    if (examineFunction(component.get()))
+    if (loadDecision(component.get()) && component->init()) {
       m_pluginManager->add(component);
+    }
+  }
+
+  for(const auto& component: m_pluginManager->getAll()) {
+    component->initComplete();
   }
 }
+
 void PluginLoader::unloadPlugins() {
   m_pluginManager->removeAll();
   m_items.clear();
 }
 
 std::shared_ptr<IPlugin> PluginLoader::loadPlugin(const std::string& path) {
-  HINSTANCE plugin = LoadLibrary(path.c_str());
-  if (!plugin) {
+  HINSTANCE pHinstance = LoadLibrary(path.c_str());
+  if (!pHinstance) {
     throw PluginLoadException();
   }
 
   auto createFunc = reinterpret_cast<procCreatePlugin>(
-      ::GetProcAddress(plugin, "createPlugin"));
+      ::GetProcAddress(pHinstance, "createPlugin"));
   if (!createFunc)
   {
-    FreeLibrary(plugin);
+    FreeLibrary(pHinstance);
     throw PluginNoFactoryException();
   }
 
-  return std::shared_ptr<IPlugin>(createFunc(), [plugin](IPlugin* p){
+  auto plugin = std::shared_ptr<IPlugin>(createFunc(), [pHinstance](IPlugin* p){
     p->destroy();
-    delete p;
-    FreeLibrary(plugin);
+    FreeLibrary(pHinstance);
   });
+
+  return plugin;
 }

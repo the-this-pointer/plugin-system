@@ -17,12 +17,29 @@ public:
 
   virtual void* getParam(PluginParam param) { return nullptr; };
 
-  virtual void destroy() {};
+  bool init() {
+    m_loaded = lfLoaded();
 
-  virtual void Init() {};
+    return m_loaded;
+  }
 
+  void initComplete() {
+    lfAllLoaded();
+  }
+
+  virtual void destroy() {
+    if (m_loaded)
+      lfBeforeUnload();
+    delete this;
+  };
+
+protected:
+  virtual bool lfLoaded() { return true; };
   virtual void lfAllLoaded() {};
   virtual void lfBeforeUnload() {};
+
+private:
+  bool m_loaded {false};
 };
 
 #endif //PLUGINSYSTEM_IPLUGIN_H
