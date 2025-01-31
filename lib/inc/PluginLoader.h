@@ -5,6 +5,7 @@
 #include <IPluginManager.h>
 #include <memory>
 #include <map>
+#include <windows.h>
 
 class PluginLoader: public IPluginLoader {
 public:
@@ -20,10 +21,11 @@ public:
   void loadPlugins(std::function<bool(IPlugin *)>) override;
   virtual void unloadPlugins() override;
 private:
-  std::shared_ptr<IPlugin> loadPlugin(const std::string& path);
+  void loadPlugin(const std::string& path);
 
   std::vector<std::shared_ptr<IPlugin>> m_items;
   std::shared_ptr<IPluginManager> m_pluginManager;
+  std::vector<HINSTANCE> m_dllInstances;
 };
 
 #endif //PLUGINSYSTEM_PLUGINLOADER_H

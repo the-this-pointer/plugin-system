@@ -5,15 +5,19 @@
 #include <utility>
 #include <filesystem>
 #include <windows.h>
+#include <vector>
 
 namespace fs = std::filesystem;
 
-typedef IPlugin* (__cdecl *procCreatePlugin)();
+typedef std::vector<IPlugin*> (__cdecl *procCreatePlugin)();
 
 PluginLoader::PluginLoader(std::shared_ptr<IPluginManager> pluginManager): m_pluginManager(pluginManager) {
 }
 
-PluginLoader::~PluginLoader() {}
+PluginLoader::~PluginLoader() {
+  for (HINSTANCE pHinstance: m_dllInstances)
+    FreeLibrary(pHinstance);
+}
 
 void PluginLoader::findPlugins(std::string path) {
   // iterate through files and load dlls
@@ -23,9 +27,7 @@ void PluginLoader::findPlugins(std::string path) {
       continue;
 
     try {
-      std::shared_ptr<IPlugin> plugin = loadPlugin(path.string());
-      if (plugin)
-        m_items.push_back(plugin);
+      loadPlugin(path.string());
     }
     catch (std::exception& ex) {
       std::cout << "Exception occured during load plugin: " << ex.what() << std::endl;
@@ -50,7 +52,7 @@ void PluginLoader::unloadPlugins() {
   m_items.clear();
 }
 
-std::shared_ptr<IPlugin> PluginLoader::loadPlugin(const std::string& path) {
+void PluginLoader::loadPlugin(const std::string& path) {
   HINSTANCE pHinstance = LoadLibrary(path.c_str());
   if (!pHinstance) {
     throw PluginLoadException();
@@ -64,10 +66,13 @@ std::shared_ptr<IPlugin> PluginLoader::loadPlugin(const std::string& path) {
     throw PluginNoFactoryException();
   }
 
-  auto plugin = std::shared_ptr<IPlugin>(createFunc(), [pHinstance](IPlugin* p){
-    p->destroy();
-    FreeLibrary(pHinstance);
-  });
-
-  return plugin;
+  auto plugins = createFunc();
+  for (IPlugin* plugin: plugins) {
+    m_items.push_back(
+        std::shared_ptr<IPlugin>(plugin, [pHinstance](IPlugin* p){
+          p->destroy();
+        })
+    );
+  }
+  m_dllInstances.push_back(pHinstance);
 }

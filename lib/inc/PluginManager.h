@@ -22,7 +22,7 @@ private:
   std::vector<std::shared_ptr<IPlugin>> m_items;
 };
 
-namespace Components {
+namespace PluginSystem {
   inline auto addPlugin(std::shared_ptr<IPlugin> object) -> void {
     PluginManager::instance()->add(std::move(object));
   }
