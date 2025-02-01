@@ -8,10 +8,7 @@
 
 class PluginManager: public IPluginManager {
 public:
-  static std::shared_ptr<PluginManager> instance() {
-    static std::shared_ptr<PluginManager> ins(new PluginManager);
-    return ins;
-  }
+  static std::shared_ptr<PluginManager> instance();
 
   void add(std::shared_ptr<IPlugin> item) override;
   void remove(std::shared_ptr<IPlugin> item) override;
@@ -37,8 +34,8 @@ namespace PluginSystem {
 
   template<typename T>
   inline auto getObject() -> std::shared_ptr<T> {
-    for (auto object : PluginManager::instance()->getAll()) {
-
+    auto plugins = PluginManager::instance()->getAll();
+    for (auto object : plugins) {
       auto castObject = std::dynamic_pointer_cast<T>(object);
 
       if (castObject != nullptr) {
@@ -53,7 +50,8 @@ namespace PluginSystem {
   inline auto getObjects() -> std::vector<std::shared_ptr<T>> {
     std::vector<std::shared_ptr<T>> objectList;
 
-    for (auto object : PluginManager::instance()->getAll()) {
+    auto plugins = PluginManager::instance()->getAll();
+    for (auto object : plugins) {
 
       auto castObject = std::dynamic_pointer_cast<T>(object);
 

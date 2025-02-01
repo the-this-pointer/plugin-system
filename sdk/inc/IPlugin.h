@@ -6,13 +6,8 @@
 #include <memory>
 #include "definitions.h"
 
-class IPlugin: std::enable_shared_from_this<IPlugin> {
+class IPlugin: public std::enable_shared_from_this<IPlugin> {
 public:
-  std::shared_ptr<IPlugin> instance()
-  {
-    return shared_from_this();
-  }
-
   virtual ~IPlugin() = default;
 
   virtual void* getParam(PluginParam param) { return nullptr; };

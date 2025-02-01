@@ -15,6 +15,7 @@ PluginLoader::PluginLoader(std::shared_ptr<IPluginManager> pluginManager): m_plu
 }
 
 PluginLoader::~PluginLoader() {
+  // FIX these instances are deleted before shared pointers to plugins...
   for (HINSTANCE pHinstance: m_dllInstances)
     FreeLibrary(pHinstance);
 }
@@ -69,7 +70,7 @@ void PluginLoader::loadPlugin(const std::string& path) {
   auto plugins = createFunc();
   for (IPlugin* plugin: plugins) {
     m_items.push_back(
-        std::shared_ptr<IPlugin>(plugin, [pHinstance](IPlugin* p){
+        std::shared_ptr<IPlugin>(plugin, [](IPlugin* p){
           p->destroy();
         })
     );
