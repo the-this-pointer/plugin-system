@@ -1,7 +1,7 @@
 #include <IPlugin.h>
 #include <IPluginManager.h>
-#include <definitions.h>
-#include <exceptions.h>
+#include <PluginApi.h>
+#include <PluginExceptions.h>
 #include <iostream>
 #include <map>
 

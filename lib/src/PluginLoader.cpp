@@ -1,5 +1,5 @@
 #include <PluginLoader.h>
-#include <exceptions.h>
+#include <PluginExceptions.h>
 #include <iostream>
 #include <algorithm>
 #include <utility>
@@ -9,15 +9,10 @@
 
 namespace fs = std::filesystem;
 
-typedef std::vector<IPlugin*> (__cdecl *procCreatePlugin)();
-
 PluginLoader::PluginLoader(std::shared_ptr<IPluginManager> pluginManager): m_pluginManager(pluginManager) {
 }
 
 PluginLoader::~PluginLoader() {
-  // FIX these instances are deleted before shared pointers to plugins...
-  for (HINSTANCE pHinstance: m_dllInstances)
-    FreeLibrary(pHinstance);
 }
 
 void PluginLoader::findPlugins(std::string path) {
@@ -36,11 +31,38 @@ void PluginLoader::findPlugins(std::string path) {
   }
 }
 
-void PluginLoader::loadPlugins(std::function<bool(IPlugin *)> loadDecision) {
-  for(const auto& component: m_items) {
-    if (loadDecision(component.get()) && component->init()) {
-      m_pluginManager->add(component);
+void PluginLoader::loadPlugins(std::function<bool(IPluginFactory *)> loadDecision) {
+
+  std::map<std::string, std::vector<std::string>> dependencyGraph;
+  for(const auto& factory: m_factories) {
+    dependencyGraph[factory.first] = factory.second->getDependencies();
+  }
+
+  std::vector<std::string> sortedDeps = topologicalSort(dependencyGraph);
+  std::vector<std::string> loadedDeps;
+  for (const auto& factoryName : sortedDeps) {
+    if (!loadDecision(m_factories[factoryName].get())) {
+      continue;
     }
+
+    if(!isSubset(loadedDeps, m_factories[factoryName]->getDependencies())) {
+      // TODO warn user
+      continue;
+    }
+
+    auto plugins = m_factories[factoryName]->createPlugins();
+    for(auto& pluginPtr: plugins) {
+      auto plugin = std::shared_ptr<IPlugin>(pluginPtr, [factory = m_factories[factoryName]](IPlugin* p){
+        p->destroy();
+        (void)factory;
+      });
+
+      m_plugins.push_back(plugin);
+      m_pluginManager->add(plugin);
+      plugin->init();
+    }
+
+    loadedDeps.push_back(factoryName);
   }
 
   for(const auto& component: m_pluginManager->getAll()) {
@@ -50,30 +72,37 @@ void PluginLoader::loadPlugins(std::function<bool(IPlugin *)> loadDecision) {
 
 void PluginLoader::unloadPlugins() {
   m_pluginManager->removeAll();
-  m_items.clear();
+  m_plugins.clear();
+  m_factories.clear();
 }
 
-void PluginLoader::loadPlugin(const std::string& path) {
-  HINSTANCE pHinstance = LoadLibrary(path.c_str());
-  if (!pHinstance) {
-    throw PluginLoadException();
+std::vector<std::string> PluginLoader::topologicalSort(const std::map<std::string, std::vector<std::string>>& dependencyGraph) {
+  std::vector<std::string> sortedPlugins;
+  std::map<std::string, bool> visited;
+
+  std::function<void(const std::string&)> visit = [&](const std::string& plugin) {
+    if (!visited[plugin]) {
+      visited[plugin] = true;
+      for (const auto& dep : dependencyGraph.at(plugin)) {
+        visit(dep);
+      }
+      sortedPlugins.push_back(plugin);
+    }
+  };
+
+  for (const auto& [plugin, _] : dependencyGraph) {
+    visit(plugin);
   }
 
-  auto createFunc = reinterpret_cast<procCreatePlugin>(
-      ::GetProcAddress(pHinstance, "createPlugin"));
-  if (!createFunc)
-  {
-    FreeLibrary(pHinstance);
-    throw PluginNoFactoryException();
-  }
+  return sortedPlugins;
+}
 
-  auto plugins = createFunc();
-  for (IPlugin* plugin: plugins) {
-    m_items.push_back(
-        std::shared_ptr<IPlugin>(plugin, [](IPlugin* p){
-          p->destroy();
-        })
-    );
-  }
-  m_dllInstances.push_back(pHinstance);
+bool PluginLoader::isSubset(const std::vector<std::string> set, const std::vector<std::string> subset) {
+  std::vector<std::string> sortedSubset = subset;
+  std::vector<std::string> sortedSet = set;
+
+  std::sort(sortedSubset.begin(), sortedSubset.end());
+  std::sort(sortedSet.begin(), sortedSet.end());
+
+  return std::includes(sortedSet.begin(), sortedSet.end(), sortedSubset.begin(), sortedSubset.end());
 }

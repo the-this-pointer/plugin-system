@@ -4,7 +4,7 @@
 #include <PluginLoader.h>
 #include <PluginManager.h>
 #include <IConsole.h>
-#include "exceptions.h"
+#include "PluginExceptions.h"
 
 #define PLUGIN_PATH "plugins"
 

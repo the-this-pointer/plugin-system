@@ -4,13 +4,10 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include "definitions.h"
 
 class IPlugin: public std::enable_shared_from_this<IPlugin> {
 public:
   virtual ~IPlugin() = default;
-
-  virtual void* getParam(PluginParam param) { return nullptr; };
 
   bool init() {
     m_loaded = lfLoaded();

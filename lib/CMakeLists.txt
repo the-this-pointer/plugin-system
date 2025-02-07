@@ -1,6 +1,12 @@
 file(GLOB_RECURSE PLUGINSYS_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 
-add_library(PluginSystem_static STATIC ${PLUGINSYS_SRC_FILES})
+if(WIN32)
+set(PS_PLATFORM "windows")
+endif()
+
+set(PLUGINSYS_PLATFORM_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/platform/${PS_PLATFORM}/PluginLoader.cpp")
+
+add_library(PluginSystem_static STATIC ${PLUGINSYS_SRC_FILES} ${PLUGINSYS_PLATFORM_FILES})
 target_include_directories(PluginSystem_static PUBLIC inc/)
 
 target_include_directories(PluginSystem_static
@@ -21,11 +27,11 @@ endif()
 
 # Shared Library
 
-add_library(PluginSystem SHARED ${PLUGINSYS_SRC_FILES})
+add_library(PluginSystem SHARED ${PLUGINSYS_SRC_FILES} ${PLUGINSYS_PLATFORM_FILES})
 target_include_directories(PluginSystem PUBLIC inc/)
 target_include_directories(PluginSystem PUBLIC ../sdk/inc/)
 
-target_compile_definitions(PluginSystem PRIVATE MAKEDLL)
+target_compile_definitions(PluginSystem PRIVATE API_PLUGIN_MAKE_DLL)
 
 set_target_properties(PluginSystem PROPERTIES PREFIX "")
 set_target_properties(PluginSystem PROPERTIES SUFFIX ".dll")
